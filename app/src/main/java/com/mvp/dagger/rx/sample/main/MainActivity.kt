@@ -28,6 +28,11 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
         replaceFragment(PlacesFragment.newInstance(),R.id.main_content_view, PlacesFragment.TAG)
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        presenter.unsubscribe()
+    }
+
     private fun initView() {
         val toggle = ActionBarDrawerToggle(
                 this, drawer_layout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
@@ -71,11 +76,14 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
             }
             R.id.nav_logout -> {
                 presenter.logout()
-                finishAffinity()
             }
         }
 
         drawer_layout.closeDrawer(GravityCompat.START)
         return true
     }
+
+    override fun onLogOutSuccess() = finishAffinity()
+
+    override fun onLogOutFailure() = Unit
 }

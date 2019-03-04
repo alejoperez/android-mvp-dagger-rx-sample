@@ -1,5 +1,6 @@
 package com.mvp.dagger.rx.sample.places
 
+import com.mvp.dagger.rx.sample.base.IBasePresenter
 import com.mvp.dagger.rx.sample.base.IBaseView
 import com.mvp.dagger.rx.sample.data.Place
 
@@ -10,7 +11,7 @@ interface IPlacesContract {
         fun onPlacesFailure()
     }
 
-    interface Presenter {
+    interface Presenter: IBasePresenter {
         fun getPlaces()
     }
 }

@@ -8,6 +8,8 @@ import com.mvp.dagger.rx.sample.webservice.LoginRequest
 import com.mvp.dagger.rx.sample.webservice.LoginResponse
 import com.mvp.dagger.rx.sample.webservice.RegisterRequest
 import com.mvp.dagger.rx.sample.webservice.RegisterResponse
+import io.reactivex.Completable
+import io.reactivex.Single
 import javax.inject.Inject
 import javax.inject.Named
 
@@ -19,50 +21,22 @@ class UserRepository
 
     override fun getUser(): User? = localDataSource.getUser()
 
-    override fun login(context: Context, request: LoginRequest, listener: ILoginListener) {
-        remoteDataSource.login(context, request, object : ILoginListener {
-            override fun onLoginSuccess(response: LoginResponse?) {
-                response?.let {
-                    PreferenceManager<String>(context).putPreference(PreferenceManager.ACCESS_TOKEN,response.accessToken)
-                    localDataSource.saveUser(response.toUser())
-                    listener.onLoginSuccess(response)
-                }
-            }
+    override fun login(context: Context, request: LoginRequest): Single<LoginResponse> =
+            remoteDataSource.login(context, request)
+                    .doOnSuccess {
+                        PreferenceManager<String>(context).putPreference(PreferenceManager.ACCESS_TOKEN, it.accessToken)
+                        localDataSource.saveUser(it.toUser())
+                    }
 
-            override fun onLoginFailure() = listener.onLoginFailure()
+    override fun register(context: Context, request: RegisterRequest): Single<RegisterResponse> =
+            remoteDataSource.register(context, request)
+                    .doOnSuccess {
+                        PreferenceManager<String>(context).putPreference(PreferenceManager.ACCESS_TOKEN, it.accessToken)
+                        localDataSource.saveUser(it.toUser())
+                    }
 
-            override fun onNetworkError() = listener.onNetworkError()
-        })
-    }
+    override fun isLoggedIn(context: Context): Single<Boolean> = localDataSource.isLoggedIn(context)
 
-    override fun register(context: Context, request: RegisterRequest, listener: IRegisterListener) {
-        remoteDataSource.register(context, request, object : IRegisterListener {
-            override fun onRegisterSuccess(response: RegisterResponse?) {
-                response?.let {
-                    PreferenceManager<String>(context).putPreference(PreferenceManager.ACCESS_TOKEN, response.accessToken)
-                    localDataSource.saveUser(response.toUser())
-                    listener.onRegisterSuccess(response)
-                }
-            }
-
-            override fun onRegisterFailure() = listener.onRegisterFailure()
-
-            override fun onNetworkError() = listener.onNetworkError()
-        })
-    }
-
-    override fun isLoggedIn(context: Context): Boolean = localDataSource.isLoggedIn(context)
-
-    override fun logout(context: Context) = localDataSource.logout(context)
-
-    interface IRegisterListener : IBaseSourceListener {
-        fun onRegisterSuccess(response: RegisterResponse?)
-        fun onRegisterFailure()
-    }
-
-    interface ILoginListener : IBaseSourceListener {
-        fun onLoginSuccess(response: LoginResponse?)
-        fun onLoginFailure()
-    }
+    override fun logout(context: Context): Completable = localDataSource.logout(context)
 
 }

@@ -3,6 +3,8 @@ package com.mvp.dagger.rx.sample.data.places
 import android.content.Context
 import com.mvp.dagger.rx.sample.data.IBaseSourceListener
 import com.mvp.dagger.rx.sample.data.Place
+import io.reactivex.Completable
+import io.reactivex.Single
 import javax.inject.Inject
 import javax.inject.Named
 
@@ -14,40 +16,19 @@ constructor(@Named(IBaseSourceListener.LOCAL) private val localDataSource: IPlac
 
     private var hasCache = false
 
-    override fun getPlaces(context: Context, listener: IPlacesListener) {
-        if (hasCache) {
-            localDataSource.getPlaces(context, listener)
+    override fun getPlaces(context: Context): Single<List<Place>> {
+        return if (hasCache) {
+            localDataSource.getPlaces(context)
         } else {
-            remoteDataSource.getPlaces(context, object : IPlacesListener{
-
-                override fun onPlacesSuccess(places: List<Place>?) {
-                    if (places != null) {
-                        savePlaces(places)
-                        listener.onPlacesSuccess(places)
-                    } else {
-                        listener.onPlacesFailure()
-                    }
-                    listener.onPlacesSuccess(places)
-                }
-
-                override fun onPlacesFailure() = listener.onPlacesFailure()
-
-                override fun onNetworkError() = listener.onNetworkError()
-            })
+            remoteDataSource.getPlaces(context).doOnSuccess {
+                savePlaces(it)
+            }
         }
     }
 
-    override fun savePlaces(places: List<Place>) {
-        localDataSource.savePlaces(places)
-    }
+    override fun savePlaces(places: List<Place>): Completable = localDataSource.savePlaces(places)
 
     fun invalidateCache() {
         hasCache = false
-    }
-
-
-    interface IPlacesListener : IBaseSourceListener {
-        fun onPlacesSuccess(places: List<Place>?)
-        fun onPlacesFailure()
     }
 }

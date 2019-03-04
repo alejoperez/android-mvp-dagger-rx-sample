@@ -32,6 +32,11 @@ class PhotosFragment : BaseFragment(), IPhotosContract.View, PhotoItemView.OnPho
         presenter.getPhotos()
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        presenter.unsubscribe()
+    }
+
     override fun onPhotosSuccess(photos: List<Photo>?) {
         rvPhotos.apply {
             layoutManager = LinearLayoutManager(getViewContext())

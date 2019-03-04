@@ -1,34 +1,40 @@
 package com.mvp.dagger.rx.sample.places
 
 import com.mvp.dagger.rx.sample.R
+import com.mvp.dagger.rx.sample.base.BasePresenter
 import com.mvp.dagger.rx.sample.data.Place
 import com.mvp.dagger.rx.sample.data.places.IPlacesDataSource
-import com.mvp.dagger.rx.sample.data.places.PlacesRepository
+import com.mvp.dagger.rx.sample.extensions.addTo
+import com.mvp.dagger.rx.sample.extensions.applyIoAndMainThreads
 import javax.inject.Inject
 
 class PlacesPresenter @Inject constructor(private val view: IPlacesContract.View,
-                                          private val placesRepository: IPlacesDataSource): IPlacesContract.Presenter, PlacesRepository.IPlacesListener {
+                                          private val placesRepository: IPlacesDataSource) : BasePresenter(), IPlacesContract.Presenter {
 
 
     override fun getPlaces() {
-        placesRepository.getPlaces(view.getViewContext(), this)
+        placesRepository.getPlaces(view.getViewContext())
+                .applyIoAndMainThreads()
+                .subscribe(
+                        {
+                            onPlacesSuccess(it)
+                        },
+                        {
+                            onPlacesFailure()
+                        }
+                )
+                .addTo(compositeDisposable)
     }
 
-    override fun onPlacesSuccess(places: List<Place>?) {
+    private fun onPlacesSuccess(places: List<Place>) {
         if (view.isActive()) {
             view.onPlacesSuccess(places)
         }
     }
 
-    override fun onPlacesFailure() {
+    private fun onPlacesFailure() {
         if (view.isActive()) {
             view.onPlacesFailure()
-        }
-    }
-
-    override fun onNetworkError() {
-        if (view.isActive()) {
-            view.showAlert(R.string.error_network)
         }
     }
 }

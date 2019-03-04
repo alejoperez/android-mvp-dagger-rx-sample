@@ -1,1 +1,1 @@
-# android-mvp-dagger-sample
+# android-mvp-dagger-rx-sample

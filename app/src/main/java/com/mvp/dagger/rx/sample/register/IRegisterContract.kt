@@ -1,5 +1,6 @@
 package com.mvp.dagger.rx.sample.register
 
+import com.mvp.dagger.rx.sample.base.IBasePresenter
 import com.mvp.dagger.rx.sample.base.IBaseView
 
 interface IRegisterContract {
@@ -14,7 +15,7 @@ interface IRegisterContract {
         fun onRegisterFailure()
     }
 
-    interface IRegisterPresenter {
+    interface IRegisterPresenter: IBasePresenter {
         fun isValidName(name: String): Boolean
         fun isValidEmail(email: String): Boolean
         fun isValidPassword(password: String): Boolean

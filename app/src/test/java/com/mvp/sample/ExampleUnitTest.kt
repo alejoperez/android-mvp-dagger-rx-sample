@@ -1,4 +1,4 @@
-package com.mvp.sample
+package com.mvp.dagger.rx.sample
 
 import org.junit.Test
 

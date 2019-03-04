@@ -1,15 +1,16 @@
 package com.mvp.dagger.rx.sample.login
 
 import com.mvp.dagger.rx.sample.R
+import com.mvp.dagger.rx.sample.base.BasePresenter
 import com.mvp.dagger.rx.sample.data.user.IUserDataSource
-import com.mvp.dagger.rx.sample.data.user.UserRepository
+import com.mvp.dagger.rx.sample.extensions.addTo
+import com.mvp.dagger.rx.sample.extensions.applyIoAndMainThreads
 import com.mvp.dagger.rx.sample.webservice.LoginRequest
-import com.mvp.dagger.rx.sample.webservice.LoginResponse
 import javax.inject.Inject
 
 
 class LoginPresenter @Inject constructor(private val view: ILoginContract.View,
-                                         private val userRepository: IUserDataSource): ILoginContract.Presenter, UserRepository.ILoginListener {
+                                         private val userRepository: IUserDataSource): BasePresenter(), ILoginContract.Presenter {
 
     override fun isValidEmail(email: String): Boolean = email.isNotEmpty() && android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
 
@@ -18,28 +19,39 @@ class LoginPresenter @Inject constructor(private val view: ILoginContract.View,
     override fun isValidForm(email: String, password: String): Boolean = isValidEmail(email) && isValidPassword(password)
 
     override fun login(email: String, password: String) {
-        view.showProgress()
-        userRepository.login(view.getViewContext(), LoginRequest(email, password),this)
+        userRepository
+                .login(view.getViewContext(), LoginRequest(email, password))
+                .applyIoAndMainThreads()
+                .doOnSubscribe { view.showProgress() }
+                .doAfterTerminate { hideProgress() }
+                .subscribe(
+                        {
+                            onLoginSuccess()
+                        },
+                        {
+                            onLoginError()
+                        }
+                )
+                .addTo(compositeDisposable)
     }
 
-    override fun onLoginSuccess(response: LoginResponse?) {
-        if (view.isActive()) {
-            view.hideProgress()
-            view.onLoginSuccess()
-        }
-    }
-
-    override fun onLoginFailure() {
+    private fun onLoginError() {
         if (view.isActive()) {
             view.hideProgress()
             view.onLoginFailure()
         }
     }
 
-    override fun onNetworkError() {
+    private fun onLoginSuccess() {
         if (view.isActive()) {
             view.hideProgress()
-            view.showAlert(R.string.error_network)
+            view.onLoginSuccess()
+        }
+    }
+
+    private fun hideProgress() {
+        if (view.isActive()) {
+            view.hideProgress()
         }
     }
 

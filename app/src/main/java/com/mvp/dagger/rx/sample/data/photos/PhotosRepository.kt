@@ -3,6 +3,8 @@ package com.mvp.dagger.rx.sample.data.photos
 import android.content.Context
 import com.mvp.dagger.rx.sample.data.IBaseSourceListener
 import com.mvp.dagger.rx.sample.data.Photo
+import io.reactivex.Completable
+import io.reactivex.Single
 import javax.inject.Inject
 import javax.inject.Named
 
@@ -13,40 +15,20 @@ constructor(@Named(IBaseSourceListener.LOCAL) private val localDataSource: IPhot
 
     private var hasCache = false
 
-    override fun getPhotos(context: Context, listener: IPhotosListener) {
-        if (hasCache) {
-            localDataSource.getPhotos(context, listener)
+    override fun getPhotos(context: Context): Single<List<Photo>> {
+        return if (hasCache) {
+            localDataSource.getPhotos(context)
         } else {
-            remoteDataSource.getPhotos(context, object : IPhotosListener{
-
-                override fun onPhotosSuccess(photos: List<Photo>?) {
-                    if (photos != null) {
-                        savePhotos(photos)
-                        listener.onPhotosSuccess(photos)
-                    } else {
-                        listener.onPhotosFailure()
+            remoteDataSource.getPhotos(context)
+                    .doOnSuccess {
+                        savePhotos(it)
                     }
-                    listener.onPhotosSuccess(photos)
-                }
-
-                override fun onPhotosFailure() = listener.onPhotosFailure()
-
-                override fun onNetworkError() = listener.onNetworkError()
-            })
         }
     }
 
-    override fun savePhotos(photos: List<Photo>) {
-        localDataSource.savePhotos(photos)
-    }
+    override fun savePhotos(photos: List<Photo>): Completable = localDataSource.savePhotos(photos)
 
     fun invalidateCache() {
         hasCache = false
-    }
-
-
-    interface IPhotosListener : IBaseSourceListener {
-        fun onPhotosSuccess(photos: List<Photo>?)
-        fun onPhotosFailure()
     }
 }

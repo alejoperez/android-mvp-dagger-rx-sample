@@ -48,6 +48,11 @@ class PlacesFragment: BaseFragment(), OnMapReadyCallback, IPlacesContract.View {
         }
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        presenter.unsubscribe()
+    }
+
     override fun onMapReady(gm: GoogleMap) {
         googleMap = gm
         presenter.getPlaces()
