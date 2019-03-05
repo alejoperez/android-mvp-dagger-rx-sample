@@ -1,6 +1,5 @@
 package com.mvp.dagger.rx.sample.places
 
-import com.mvp.dagger.rx.sample.R
 import com.mvp.dagger.rx.sample.base.BasePresenter
 import com.mvp.dagger.rx.sample.data.Place
 import com.mvp.dagger.rx.sample.data.places.IPlacesDataSource

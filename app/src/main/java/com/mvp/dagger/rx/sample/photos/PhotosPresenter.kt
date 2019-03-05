@@ -1,6 +1,5 @@
 package com.mvp.dagger.rx.sample.photos
 
-import com.mvp.dagger.rx.sample.R
 import com.mvp.dagger.rx.sample.base.BasePresenter
 import com.mvp.dagger.rx.sample.data.Photo
 import com.mvp.dagger.rx.sample.data.photos.IPhotosDataSource

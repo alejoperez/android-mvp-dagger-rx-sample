@@ -1,6 +1,5 @@
 package com.mvp.dagger.rx.sample.login
 
-import com.mvp.dagger.rx.sample.R
 import com.mvp.dagger.rx.sample.base.BasePresenter
 import com.mvp.dagger.rx.sample.data.user.IUserDataSource
 import com.mvp.dagger.rx.sample.extensions.addTo
